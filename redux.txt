@@ -1,0 +1,88 @@
+//STORE
+
+import {createStore} from "redux";
+import {Provider} from "react-redux";
+
+import rootReducer from "./reducers/index";
+
+const store = createStore(
+    rootReducer, 
+    window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()); //for redux devtools
+
+ReactDOM.render(
+    <Provider store={store}> // enables store (rootReducer) in the whole app.
+        <App /> 
+    </Provider>
+, document.getElementById('root')
+);
+
+//RootReducer
+import {cargoItemReducer} from "./cargoItems" 
+import {combineReducers} from "redux";
+import shipReducer from "./ships";
+
+const rootReducer = combineReducers({
+    ships: shipReducer, // ships and dock will be used in the app to access state
+    dock: cargoItemReducer
+})
+
+export default rootReducer;
+
+//Reducer
+export const cargoItemReducer = (state = [], action) => { //based on action object alterations to the state are made
+    switch(action.type){
+        case "LOAD":
+            return action.payload;
+        case "DELETE":
+            return state.filter((item) => {
+                return item._id !== action.payload
+            });
+        case "ADD":
+            return [...state, action.payload];
+        case "MODIFY":
+            return state.map((item) => {
+                if (item._id !== action.id){
+                    return item;
+                } else {
+                    return {
+                        _id: item._id,
+                        weight: action.data.weight,
+                        volume: action.data.volume
+                    }
+                }
+            });
+        default:
+            return state;
+    }
+}
+
+//Action examples
+
+export const deleteCargo = (id) => { // these actions can be called in various places in the whole app
+    return {
+        type: "DELETE",
+        payload: id
+    }
+}
+
+export const modifyCargo = (_id, cargoData) => {
+    return {
+        type: "MODIFY",
+        id: _id,
+        data: cargoData
+    }
+}
+
+//Dispatch
+
+import { useDispatch } from "react-redux";
+import { deleteCargo, addCargoShip } from "../actions";
+
+function SomeElement(){
+	const dispatch = useDispatch();
+	function manageClick(id){
+	  dispatch(deleteCargo(id)) // calling an action type "DELETE" which triggers a reducer to alter the state by deleting a cargoItem
+	}
+	return (<SomeOnClickElement>);
+}
+
